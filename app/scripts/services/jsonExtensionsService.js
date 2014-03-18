@@ -1,6 +1,12 @@
 (function (angular) {
     'use strict';
 
+
+    /*Generic Reviver/ToJSON/FromJSON functions
+     * via http://stackoverflow.com/questions/8111446/turning-json-strings-into-objects-with-methods
+     *
+     * */
+
     angular.module('json-extensions', []).factory('JsonExtensionsService', function () {
         var jsonExtensionsInstance, constructorCache;
 

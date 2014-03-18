@@ -1,6 +1,5 @@
-(function(){
+(function () {
     'use strict';
-
 
     //ref
     //http://stackoverflow.com/questions/8111446/turning-json-strings-into-objects-with-methods
@@ -24,16 +23,16 @@
             };
 
             simpleObjectExpectedJson = '{'
-                +'"fieldOne":"The special first value",'
-                +'"fieldTwo":"The special second value",'
-                    +'"numberField":1874,'
-                    +'"boolField":false,'
-                    +'"lastString":"The last string"'
-                    +'}';
+                + '"fieldOne":"The special first value",'
+                + '"fieldTwo":"The special second value",'
+                + '"numberField":1874,'
+                + '"boolField":false,'
+                + '"lastString":"The last string"'
+                + '}';
         });
 
 
-        it('Should maintain the same fields and values when an object is JSON.stringify(ed)', function(){
+        it('Should maintain the same fields and values when an object is JSON.stringify(ed)', function () {
 
             var jsonString;
             jsonString = JSON.stringify(simpleObject);
@@ -41,7 +40,7 @@
 
         });
 
-        it('Should be an equatable object when an object JSON.stringify(ed) and revived', function(){
+        it('Should be an equatable object when an object JSON.stringify(ed) and revived', function () {
 
             var jsonString, revivedObject;
             jsonString = JSON.stringify(simpleObject);
@@ -53,13 +52,12 @@
         });
 
 
-
-        it('Should not maintain object functions when an object is JSON.stringify(ed)', function(){
+        it('Should not maintain object functions when an object is JSON.stringify(ed)', function () {
 
             var jsonString, revivedObject, logString;
 
             logString = 'WhooHoo!';
-            simpleObject.someCoolFunction = function(){
+            simpleObject.someCoolFunction = function () {
                 console.log(logString);
             };
 
@@ -71,17 +69,18 @@
             jsonString = JSON.stringify(simpleObject);
             expect(jsonString).toEqual(simpleObjectExpectedJson);
 
-            revivedObject =  JSON.parse(jsonString);
+            revivedObject = JSON.parse(jsonString);
             expect(revivedObject.someCoolFunction).toBeUndefined();
 
         });
 
 
-        it('Should maintain the same fields and values with a constructor created object is JSON.stringify(ed)', function(){
+        it('Should maintain the same fields and values with a constructor created object is JSON.stringify(ed)', function () {
 
             var jsonString, specialObject;
-            function CtorObject(fieldOne, fieldTwo, numberField, boolField, lastString){
-                this.fieldOne =  fieldOne;
+
+            function CtorObject(fieldOne, fieldTwo, numberField, boolField, lastString) {
+                this.fieldOne = fieldOne;
                 this.fieldTwo = fieldTwo;
                 this.numberField = numberField;
                 this.boolField = boolField;
@@ -96,11 +95,12 @@
         });
 
 
-        it('Should not maintain the same type when a constructor created object is JSON.stringify(ed) and revived', function(){
+        it('Should not maintain the same type when a constructor created object is JSON.stringify(ed) and revived', function () {
 
             var jsonString, specialObject, revivedObject;
-            function CtorObject(fieldOne, fieldTwo, numberField, boolField, lastString){
-                this.fieldOne =  fieldOne;
+
+            function CtorObject(fieldOne, fieldTwo, numberField, boolField, lastString) {
+                this.fieldOne = fieldOne;
                 this.fieldTwo = fieldTwo;
                 this.numberField = numberField;
                 this.boolField = boolField;
@@ -119,22 +119,23 @@
         });
 
 
-        it('Should  maintain the same type a constructor created object with a special toJSON function is JSON.stringify(ed) and revived', function(){
+        it('Should  maintain the same type a constructor created object with a special toJSON function is JSON.stringify(ed) and revived', function () {
 
             var jsonString, specialObject, revivedObject;
-            function CtorObject(fieldOne, fieldTwo, numberField, boolField, lastString){
-                this.fieldOne =  fieldOne;
+
+            function CtorObject(fieldOne, fieldTwo, numberField, boolField, lastString) {
+                this.fieldOne = fieldOne;
                 this.fieldTwo = fieldTwo;
                 this.numberField = numberField;
                 this.boolField = boolField;
                 this.lastString = lastString;
             }
 
-            CtorObject.prototype.toJSON = function(){
+            CtorObject.prototype.toJSON = function () {
                 return jsonExtensionsSerivceInstance.genericToJson('CtorObject', this);
             };
 
-            CtorObject.fromJSON = function(value){
+            CtorObject.fromJSON = function (value) {
                 return jsonExtensionsSerivceInstance.genericFromJson(CtorObject, value.data);
             };
 
@@ -153,15 +154,6 @@
 
             jsonExtensionsSerivceInstance.removeRevivableCtor('CtorObject')
         });
-
-
-
-        /*Generic Reviver/ToJSON/FromJSON functions
-        * via http://stackoverflow.com/questions/8111446/turning-json-strings-into-objects-with-methods
-        *
-        * */
-
-
     });
 
 }());
