@@ -125,14 +125,14 @@
             };
 
             CtorObject.prototype.toJSON = function(){
-                return Generic_toJSON('CtorObject', this);
+                return jsonExtensions.genericToJson('CtorObject', this);
             };
 
             CtorObject.fromJSON = function(value){
-                return Generic_fromJSON(CtorObject, value.data);
+                return jsonExtensions.genericFromJson(CtorObject, value.data);
             };
 
-            Reviver.constructors.CtorObject = CtorObject;
+            jsonExtensions.addRevivableCtor('CtorObject', CtorObject);
 
             specialObject = new CtorObject('The special first value', 'The special second value', 1874, false, 'The last string');
 
@@ -140,10 +140,12 @@
 
             jsonString = JSON.stringify(specialObject);
 
-            revivedObject = JSON.parse(jsonString, Reviver);
+            revivedObject = JSON.parse(jsonString, jsonExtensions.genericReviver);
             expect(revivedObject instanceof CtorObject).toBeTruthy();
 
             expect(revivedObject).toEqual(specialObject);
+
+            jsonExtensions.removeRevivableCtor('CtorObject')
         });
 
 
@@ -153,49 +155,66 @@
         *
         * */
 
-        function Reviver(key, value) {
-            var ctor;
+        var jsonExtensions = function(){
+            'use strict';
 
+            var constructorCache;
 
-            if (typeof value === "object" &&
-                typeof value.ctor === "string" &&
-                typeof value.data !== "undefined") {
-                ctor = Reviver.constructors[value.ctor] || window[value.ctor];
-                if (typeof ctor === "function" &&
-                    typeof ctor.fromJSON === "function") {
-                        return ctor.fromJSON(value);
+            constructorCache = {}
+
+            return {
+                genericReviver: function(key, value){
+
+                    var _ctor, _revivedObj;
+
+                    if (typeof value === "object" &&
+                        typeof value.ctor === "string" &&
+                        typeof value.data !== "undefined") {
+                        _ctor = constructorCache[value.ctor];
+                        if (typeof _ctor === "function" &&
+                            typeof _ctor.fromJSON === "function") {
+                            _revivedObj = _ctor.fromJSON(value);
+                        }
+                    }
+
+                    return _revivedObj || value;
+                },
+
+                addRevivableCtor: function(ctorName, ctor){
+                    constructorCache[ctorName] = ctor;
+                },
+
+                removeRevivableCtor: function(ctorName){
+                    delete constructorCache[ctorName];
+                },
+
+                genericToJson: function(ctorName, obj, keys) {
+                    var data, index;
+
+                    keys = keys || Object.keys(obj);
+                    data = {};
+
+                    //move to forEach based on http://jsperf.com/object-keys-vs-hasownproperty/4
+                    keys.forEach(function(key){
+                        data[key] = obj[key];
+                    });
+
+                    return {ctor: ctorName, data: data};
+                },
+
+                genericFromJson: function(ctor, data){
+                    var obj, keys;
+
+                    obj = new ctor();
+                    keys = Object.keys(data);
+                    keys.forEach(function(key){
+                        obj[key] = data[key];
+                    });
+
+                    return obj;
                 }
             }
-            return value;
-        }
-
-        Reviver.constructors = {};
-
-        function Generic_toJSON(ctorName, obj, keys) {
-            var data, index, key;
-
-            if (!keys) {
-                keys = Object.keys(obj); // Only "own" properties are included
-            }
-
-            data = {};
-            for (index = 0; index < keys.length; ++index) {
-                key = keys[index];
-                data[key] = obj[key];
-            }
-            return {ctor: ctorName, data: data};
-        }
-
-        function Generic_fromJSON(ctor, data) {
-            var obj, name;
-
-            obj = new ctor();
-            for (name in data) {
-                obj[name] = data[name];
-            }
-            return obj;
-        }
-
+        }();
     });
 
 }());
