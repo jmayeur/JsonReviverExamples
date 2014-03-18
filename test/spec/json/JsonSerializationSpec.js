@@ -6,9 +6,15 @@
     //http://stackoverflow.com/questions/8111446/turning-json-strings-into-objects-with-methods
     describe('JSON serialization', function () {
 
-        var simpleObject, simpleObjectExpectedJson;
+        var simpleObject, simpleObjectExpectedJson, jsonExtensionsSerivceInstance;
 
-        beforeEach(function(){
+        // load the controller's module
+        beforeEach(function () {
+            module('json-extensions');
+            inject(function (JsonExtensionsService) {
+                jsonExtensionsSerivceInstance = JsonExtensionsService;
+            });
+
             simpleObject = {
                 fieldOne: 'The special first value',
                 fieldTwo: 'The special second value',
@@ -55,7 +61,7 @@
             logString = 'WhooHoo!';
             simpleObject.someCoolFunction = function(){
                 console.log(logString);
-            }
+            };
 
             //verify it has the method
             spyOn(console, 'log');
@@ -80,7 +86,7 @@
                 this.numberField = numberField;
                 this.boolField = boolField;
                 this.lastString = lastString;
-            };
+            }
 
             specialObject = new CtorObject('The special first value', 'The special second value', 1874, false, 'The last string');
 
@@ -99,7 +105,7 @@
                 this.numberField = numberField;
                 this.boolField = boolField;
                 this.lastString = lastString;
-            };
+            }
 
             specialObject = new CtorObject('The special first value', 'The special second value', 1874, false, 'The last string');
             expect(specialObject instanceof CtorObject).toBeTruthy();
@@ -122,17 +128,17 @@
                 this.numberField = numberField;
                 this.boolField = boolField;
                 this.lastString = lastString;
-            };
+            }
 
             CtorObject.prototype.toJSON = function(){
-                return jsonExtensions.genericToJson('CtorObject', this);
+                return jsonExtensionsSerivceInstance.genericToJson('CtorObject', this);
             };
 
             CtorObject.fromJSON = function(value){
-                return jsonExtensions.genericFromJson(CtorObject, value.data);
+                return jsonExtensionsSerivceInstance.genericFromJson(CtorObject, value.data);
             };
 
-            jsonExtensions.addRevivableCtor('CtorObject', CtorObject);
+            jsonExtensionsSerivceInstance.addRevivableCtor('CtorObject', CtorObject);
 
             specialObject = new CtorObject('The special first value', 'The special second value', 1874, false, 'The last string');
 
@@ -140,12 +146,12 @@
 
             jsonString = JSON.stringify(specialObject);
 
-            revivedObject = JSON.parse(jsonString, jsonExtensions.genericReviver);
+            revivedObject = JSON.parse(jsonString, jsonExtensionsSerivceInstance.genericReviver);
             expect(revivedObject instanceof CtorObject).toBeTruthy();
 
             expect(revivedObject).toEqual(specialObject);
 
-            jsonExtensions.removeRevivableCtor('CtorObject')
+            jsonExtensionsSerivceInstance.removeRevivableCtor('CtorObject')
         });
 
 
@@ -155,66 +161,7 @@
         *
         * */
 
-        var jsonExtensions = function(){
-            'use strict';
 
-            var constructorCache;
-
-            constructorCache = {}
-
-            return {
-                genericReviver: function(key, value){
-
-                    var _ctor, _revivedObj;
-
-                    if (typeof value === "object" &&
-                        typeof value.ctor === "string" &&
-                        typeof value.data !== "undefined") {
-                        _ctor = constructorCache[value.ctor];
-                        if (typeof _ctor === "function" &&
-                            typeof _ctor.fromJSON === "function") {
-                            _revivedObj = _ctor.fromJSON(value);
-                        }
-                    }
-
-                    return _revivedObj || value;
-                },
-
-                addRevivableCtor: function(ctorName, ctor){
-                    constructorCache[ctorName] = ctor;
-                },
-
-                removeRevivableCtor: function(ctorName){
-                    delete constructorCache[ctorName];
-                },
-
-                genericToJson: function(ctorName, obj, keys) {
-                    var data, index;
-
-                    keys = keys || Object.keys(obj);
-                    data = {};
-
-                    //move to forEach based on http://jsperf.com/object-keys-vs-hasownproperty/4
-                    keys.forEach(function(key){
-                        data[key] = obj[key];
-                    });
-
-                    return {ctor: ctorName, data: data};
-                },
-
-                genericFromJson: function(ctor, data){
-                    var obj, keys;
-
-                    obj = new ctor();
-                    keys = Object.keys(data);
-                    keys.forEach(function(key){
-                        obj[key] = data[key];
-                    });
-
-                    return obj;
-                }
-            }
-        }();
     });
 
 }());
