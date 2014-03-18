@@ -1,7 +1,11 @@
 JsonReviverExamples
 ===================
 
-Discovery App, trying to get a handle on JSON Revivers 
+Discovery App, trying to get a handle on JSON Revivers - based on this StackOverFlow
+http://stackoverflow.com/questions/8111446/turning-json-strings-into-objects-with-methods
+
+- my goal is to start with this generic reviver approach and evolve it to something that can
+handle more complex situations.
 
 
 Quick start
